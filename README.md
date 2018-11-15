@@ -48,15 +48,15 @@ cd docker-local-demo
 The project includes precreated certificates in the `resources` directory. If you wish to use the precreated certificates you can skip the rest of this step.
 
 ```powershell
-cp resources/load-balancer/*.crt volumes/load-balancer/certs
-cp resources/load-balancer/*.key volumes/load-balancer/certs
+cp resources/load-balancer/*.crt volumes/load-balancer
+cp resources/load-balancer/*.key volumes/load-balancer
 ```
 
 If you wish to create your own certificates, here is an example doing that. Note that OpenSSL on Windows does not appear to support SAN certificates so this needs to be done in Bash for Windows.
 
 ```bash
 # Run in Bash for Windows
-cd /mnt/c/dartbox/Code/containerization/docker-local-demo/volumes/load-balancer/certs
+cd /mnt/c/dartbox/Code/containerization/docker-local-demo/volumes/load-balancer
 
 openssl genrsa -out local-demo-net-ca.key 4096
 openssl req -new -x509 -days 3650 -key local-demo-net-ca.key -subj "/C=US/ST=State/L=City/O=Organization/OU=Org Unit/CN=Localhost Root CA" -out local-demo-net-ca.crt
@@ -72,7 +72,7 @@ After the certificates are in place, import the CA as a trusted root certificate
 
 ```powershell
 # Run as administrator in PowerShell 5
-Import-Certificate -FilePath "$pwd\volumes\load-balancer\certs\local-demo-net-ca.crt" -CertStoreLocation "cert:\CurrentUser\Root"
+Import-Certificate -FilePath "$pwd\volumes\load-balancer\local-demo-net-ca.crt" -CertStoreLocation "cert:\CurrentUser\Root"
 ```
 
 ## 5. Hosts file
