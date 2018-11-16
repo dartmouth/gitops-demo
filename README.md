@@ -114,7 +114,7 @@ docker pull jenkins/jenkins:2.121.2
 Copy the nginx conf into place
 
 ```powershell
-cp resources/load-balancer-conf/nginx.conf volumes/load-balancer
+cp resources/load-balancer/nginx.conf volumes/load-balancer
 ```
 
 ```powershell
@@ -180,17 +180,16 @@ gitlab-ctl reconfigure
 Create the Jenkins master.
 
 ```
-$ConfigRoot = "C:\dartnotes\docker infrastructure setup\volumes\jenkins-master"
-docker run --detach `
+docker run -d `
 --name jenkins-master `
 --restart unless-stopped `
 --env JENKINS_SLAVE_AGENT_PORT=50001 `
--v "$($ConfigRoot):/var/jenkins_home" `
+-v "$pwd/volumes/jenkins-master:/var/jenkins_home" `
 -p 8080:8080 `
 -p 38443:8443 `
 -p 50001:50001 `
---network common-ground `
-jenkins/jenkins:lts
+--network docker-local-demo `
+jenkins/jenkins:2.121.2
 ```
 
 
@@ -214,6 +213,9 @@ docker run -d `
 --network common-ground `
 jenkins-slave
 ```
+
+
+java -jar agent.jar -jnlpUrl https://ci.local-demo.net/computer/jenkins-slave1/slave-agent.jnlp -secret c1b90fded8a905202c7bc741b07cdd4cd576a3b0dade9305d27a2d2aa739daa9
 
 
 
