@@ -198,24 +198,43 @@ jenkins/jenkins:2.121.2
 Create the Jenkins slave
 
 ```
-cd "C:\dartnotes\docker infrastructure setup\jenkins-slave"
+cd "resources/jenkins-slave"
 docker build -t jenkins-slave .
+cd ../..
+mkdir volumes/jenkins-slave1
 
 docker run -d `
 --name jenkins-slave1 `
 --restart unless-stopped `
 -e JENKINS_REMOTE_ROOT_DIR='/var/jenkins' `
--e JENKINS_JNLP_URL='http://jenkins-master:8080/computer/jenkins-slave01/slave-agent.jnlp' `
+-e JENKINS_JNLP_URL='http://jenkins-master:8080/computer/jenkins-slave1/slave-agent.jnlp' `
 -e TZ=America/New_York `
+-e JENKINS_SECRET=c1b90fded8a905202c7bc741b07cdd4cd576a3b0dade9305d27a2d2aa739daa9 `
 -v /usr/local/bin/docker:/usr/bin/docker `
 -v /var/run/docker.sock:/var/run/docker.sock `
--v "C:\dartnotes\docker infrastructure setup\volumes\jenkins-slave1:/var/jenkins" `
---network common-ground `
+-v "$pwd\volumes\jenkins-slave1:/var/jenkins" `
+--network docker-local-demo `
 jenkins-slave
 ```
 
+## 11. Rough steps
 
-java -jar agent.jar -jnlpUrl https://ci.local-demo.net/computer/jenkins-slave1/slave-agent.jnlp -secret c1b90fded8a905202c7bc741b07cdd4cd576a3b0dade9305d27a2d2aa739daa9
+Added SSH key to Git
+Created a project at git@git.local-demo.net:root/www-local-demo-net.git
 
+```
+cd ..
+git clone ssh://git@git.local-demo.net:4008/root/www-local-demo-net.git
 
+cp docker-local-demo/resources/www-local-demo-net/* www-local-demo-net
 
+cd www-local-demo-net
+
+docker build -t www-local-demo-net:latest .
+
+docker run -d `
+--name www-local-demo-net `
+--restart unless-stopped `
+--network docker-local-demo `
+www-local-demo-net:latest
+```
