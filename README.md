@@ -238,3 +238,44 @@ docker run -d `
 --network docker-local-demo `
 www-local-demo-net:latest
 ```
+
+* Create SSH keys for the account
+
+```
+ssh-keygen -t rsa -C "no-reply+jenkins-svc@dartmouth.edu" -b 4096
+jenkins-svc
+cat jenkins-svc.pub | clip
+```
+
+- Creat service account in Git
+  - Go [here](https://git.local-demo.net/admin/users/new)
+  - username/name = jenkins-svc
+  - email = no-reply@dartmouth.edu
+  - impersonate > settings > ssh keys
+
+- Add the private key to Jenkins
+  - Go to [ci](ci.dartmouth.edu)
+  - Credentials > pull down global > add credentials
+    SSH username with private key
+    add directly
+    username = jenkins-svc
+    ID = jenkins-svc
+
+- Add jenkins-svc to project
+
+
+- Create a Jenkins pipeline
+  - Go [here](https://ci.local-demo.net/)
+  New item > pipeline
+  name = www-local-demo-net
+  enter
+  pipeline definition = Pipeline script from SCM
+  repo = git
+  ssh:
+
+    ```
+    git@gitlab:root/www-local-demo-net.git
+    ```
+
+
+- Create a Jenkinsfile
