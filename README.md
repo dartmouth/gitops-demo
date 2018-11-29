@@ -248,7 +248,7 @@ cat jenkins-svc.pub | clip
 ```
 
 - Creat service account in Git
-  - Go [here](https://git.local-demo.net/admin/users/new)
+  - Go to [your git](https://git.local-demo.net/admin/users/new)
   - username/name = jenkins-svc
   - email = no-reply@dartmouth.edu
   - impersonate > settings > ssh keys
@@ -265,7 +265,7 @@ cat jenkins-svc.pub | clip
 
 
 - Create a Jenkins pipeline
-  - Go [here](https://ci.local-demo.net/)
+  - Go [your ci](https://ci.local-demo.net/)
   New item > pipeline
   name = www-local-demo-net
   enter
@@ -279,3 +279,6 @@ cat jenkins-svc.pub | clip
 
 
 - Create a Jenkinsfile
+
+- Add plugins
+  - ssh agent
