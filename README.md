@@ -497,16 +497,25 @@ notepad "C:\Windows\System32\drivers\etc\hosts"
 ```
 
 ```bash
+# Clean up temporary git config
+export GIT_SSH_COMMAND=''
+
+# Delete container
+docker rm -f www
 docker rm -f jenkins-slave1
 docker rm -f jenkins-master
 docker rm -f gitlab
 docker rm -f nginx
 
+# Delete volumes
 docker volume rm gitlab-config-volume
 docker volume rm gitlab-logs-volume
 docker volume rm gitlab-opt-volume
 
+# Delete network
 docker network rm docker-local-demo
 
+# Delete demo repo
+cd ..
 rm -rf docker-local-demo
 ```
