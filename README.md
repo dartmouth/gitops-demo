@@ -49,7 +49,7 @@ cd docker-local-demo
 
 Then create directories to store persistent data
 ```bash
-mkdir volumes/load-balancer
+mkdir -p volumes/load-balancer
 mkdir volumes/gitlab
 mkdir volumes/jenkins-master
 mkdir volumes/jenkins-svc
@@ -505,7 +505,7 @@ docker rm -f www
 docker rm -f jenkins-slave1
 docker rm -f jenkins-master
 docker rm -f gitlab
-docker rm -f nginx
+docker rm -f load-balancer
 
 # Delete volumes
 docker volume rm gitlab-config-volume
