@@ -498,7 +498,7 @@ notepad "C:\Windows\System32\drivers\etc\hosts"
 
 ```bash
 # Clean up temporary git config
-export GIT_SSH_COMMAND=''
+unset GIT_SSH_COMMAND
 
 # Delete container
 docker rm -f www
