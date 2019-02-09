@@ -66,6 +66,7 @@ cp resources/load-balancer/*.key volumes/load-balancer
 cp resources/gitlab/*.crt volumes/gitlab
 cp resources/gitlab/*.key volumes/gitlab
 cp resources/jenkins-svc/* volumes/jenkins-svc
+chmod 600 volumes/jenkins-svc/*
 ```
 
 Of, if you wish to create your own certificates, here is an example doing that. Note that OpenSSL on Windows does not appear to support SAN certificates so this needs to be done in WSL.
@@ -107,7 +108,7 @@ After the certificates are in place, import the CA as a trusted root certificate
 # Run as administrator in PowerShell 5
 
 # Update the path accordingly
-cd "C:\dartbox\Code\containerization\docker-local-demo"
+cd "~\Desktop\docker-local-demo"
 
 Import-Certificate -FilePath "$pwd\volumes\load-balancer\local-demo-net-ca.crt" -CertStoreLocation "cert:\CurrentUser\Root"
 ```
@@ -252,11 +253,22 @@ cat volumes/jenkins-svc/jenkins-svc.pub | clip.exe
 
 - Get the initial root password
 ```bash
-docker exec jenkins-master cat /var/jenkins_home/secrets/initialAdminPassword
+docker exec jenkins-master cat /var/jenkins_home/secrets/initialAdminPassword | clip.exe
 ```
 
 - Browse to [https://ci.local-demo.net/](https://ci.local-demo.net/) and log in with the root password.
-- Click `Install suggested plugins` and then set the following:
+- Click `Select plugins to install` and choose the following:
+  - Folders
+  - Build timeout
+  - Credential Binding
+  - Timestamper
+  - Workspace cleanup
+  - Pipeline
+  - Pipeline: Stage View
+  - Git
+  - SSH Slaves
+- Click `Install`
+After the plugins are installed, enter the following:
 ```text
 Username: admin
 Password: REMOVED
@@ -307,7 +319,7 @@ AGENT_SECRET=6dd963b84050baf93d41e2df52aa1a8d6a1a08b3a99316343632d76b1c70217d
 Create the Jenkins slave
 
 ```bash
-#chmod 774 resources/jenkins-slave/docker-entrypoint.sh
+chmod 774 resources/jenkins-slave/docker-entrypoint.sh
 cd resources/jenkins-slave
 docker build -t jenkins-slave .
 cd ../..
@@ -352,7 +364,7 @@ git commit -m "Initial commit"
 
 # Push the changes to GitLab
 # Accept the host fingerprint
- git push -u origin master
+git push -u origin master
 ```
 
 ## 14. Create the WWW container
@@ -378,7 +390,11 @@ Browse to [https://www.local-demo.net/](https://www.local-demo.net/) and you sho
 - Switch to the `Available` tab.
 - In the filter, enter `GitLab`.
 - Check the `GitLab` plugin and click `Install without restart`.
-
+- Check `Restart Jenkins when installation is complete and no jobs are running`.
+- Wait for Jenkins to restart. After it has restarted, start up the slave.
+```bash
+docker start jenkins-slave1
+```
 
 ## 16. Create a Jenkins pipeline to update your website
 
@@ -403,7 +419,7 @@ Private key: Enter directly
 Key: <paste from clipboard>
 Passphrase: <blank>
 ID: jenkins-svc-key
-Description: jenkins-svc GitLab key
+Description: jenkins-svc-key
 ```
 - Click `OK`.
 
@@ -463,27 +479,12 @@ vi index.html
 git add -A
 git commit -m "Updated hello"
 git push
-
 ```
 
-
-
-
-
-
+Browse to [https://www.local-demo.net/](https://www.local-demo.net/) to view your changes.
 
 
 # Other notes
-
-## Startup steps
-
-```bash
-docker start load-balancer
-docker start gitlab
-docker start jenkins-master
-docker start jenkins-slave1
-docker start www
-```
 
 ## Undo steps
 

@@ -1,0 +1,17 @@
+node('dev') {
+  stage("Build new Docker image") {
+    checkout scm
+    sh 'docker build -t www:latest .'
+  }
+  stage("Remove old Docker container") {
+    try {
+      sh 'docker rm -f www'
+    }
+    catch (err) {
+      echo "${err}"
+    }
+  }
+  stage("Run the new Docker container") {
+    sh 'docker run -d --name www --network docker-local-demo www:latest'
+  }
+}
