@@ -69,20 +69,20 @@ cp resources/jenkins-svc/* volumes/jenkins-svc
 chmod 600 volumes/jenkins-svc/*
 ```
 
-Of, if you wish to create your own certificates, here is an example doing that. Note that OpenSSL on Windows does not appear to support SAN certificates so this needs to be done in WSL.
+Or, if you wish to create your own certificates, here is an example doing that. Note that OpenSSL on Windows does not appear to support SAN certificates so this needs to be done in WSL.
 
 ```bash
 cd volumes/load-balancer
 
 # Create a certificate authority
 openssl genrsa -out local-demo-net-ca.key 4096
-openssl req -new -x509 -days 3650 -key local-demo-net-ca.key -subj "/C=US/ST=State/L=City/O=Organization/OU=Org Unit/CN=Localhost Root CA" -out local-demo-net-ca.crt
+openssl req -new -x509 -sha256 -days 3650 -key local-demo-net-ca.key -subj "/C=US/ST=State/L=City/O=Organization/OU=Org Unit/CN=Localhost Root CA" -out local-demo-net-ca.crt
 
 # Create a wildcard certificate request
-openssl req -newkey rsa:4096 -nodes -keyout local-demo-net.key -subj "/C=US/ST=State/L=City/O=Organization/OU=Org Unit/CN=*.local-demo.net" -out local-demo-net.csr
+openssl req -sha256 -newkey rsa:4096 -nodes -keyout local-demo-net.key -subj "/C=US/ST=State/L=City/O=Organization/OU=Org Unit/CN=*.local-demo.net" -out local-demo-net.csr
 
 # Create a wildcard certificate
-openssl x509 -req -extfile <(printf "subjectAltName=DNS:*.local-demo.net,DNS:local-demo.net,DNS:localhost") -days 3650 -in local-demo-net.csr -CA local-demo-net-ca.crt -CAkey local-demo-net-ca.key -CAcreateserial -out  local-demo-net.crt
+openssl x509 -sha256 -req -extfile <(printf "subjectAltName=DNS:*.local-demo.net,DNS:local-demo.net,DNS:localhost") -days 3650 -in local-demo-net.csr -CA local-demo-net-ca.crt -CAkey local-demo-net-ca.key -CAcreateserial -out  local-demo-net.crt
 
 # Clean up temporary files
 rm -f local-demo-net-ca.srl local-demo-net.csr
@@ -90,7 +90,7 @@ rm -f local-demo-net-ca.srl local-demo-net.csr
 cd ../gitlab
 
 # Create a self-signed certificate for GitLab to use for encryption
-openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -subj "/C=US/ST=State/L=City/O=Organization/OU=Org Unit/CN=GitLab" -keyout git.local-demo-net.key -out git.local-demo-net.crt
+openssl req -x509 -sha256 -nodes -days 3650 -newkey rsa:2048 -subj "/C=US/ST=State/L=City/O=Organization/OU=Org Unit/CN=GitLab" -keyout git.local-demo-net.key -out git.local-demo-net.crt
 
 cd ../jenkins-svc
 # Create a SSH key for a Jenkins service account to authenticate to GitLab
@@ -103,7 +103,7 @@ cd ../..
 ```
 
 After the certificates are in place, import the CA as a trusted root certificate authority.
-
+Windows
 ```powershell
 # Run as administrator in PowerShell 5
 
@@ -113,14 +113,27 @@ cd "~\Desktop\docker-local-demo"
 Import-Certificate -FilePath "$pwd\volumes\load-balancer\local-demo-net-ca.crt" -CertStoreLocation "cert:\CurrentUser\Root"
 ```
 
+Mac
+```bash
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain volumes/load-balancer/local-demo-net-ca.crt
+```
+
 ## 5. Hosts file
 
 Update your hosts file
+
+**Windows**
 
 ```powershell
 # Run as administrator in PowerShell 5
 
 echo "`r`n127.0.0.1   local-demo.net www.local-demo.net git.local-demo.net ci.local-demo.net" | out-file "C:\Windows\System32\drivers\etc\hosts" -encoding ascii -append
+```
+
+**Mac**
+
+```bash
+sudo bash -c 'printf "\n127.0.0.1   local-demo.net www.local-demo.net git.local-demo.net ci.local-demo.net\n" >> /private/etc/hosts'
 ```
 
 ## 6. Prepare the Docker environment
