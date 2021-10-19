@@ -160,7 +160,7 @@ Pull the Docker base images
 ```bash
 docker pull nginx:latest
 docker pull gitlab/gitlab-ce:11.6.3-ce.0
-docker pull jenkins/jenkins:2.121.2
+docker pull jenkins/jenkins:lts
 ```
 
 ## 7. Run the load balancer
@@ -233,7 +233,7 @@ docker run -d \
 -p 38443:8443 \
 -p 50001:50001 \
 --network docker-local-demo \
-jenkins/jenkins:2.121.2
+jenkins/jenkins:lts
 ```
 
 ## 10. Log into GitLab and configure it
@@ -279,7 +279,7 @@ docker exec jenkins-master cat /var/jenkins_home/secrets/initialAdminPassword | 
   - Pipeline
   - Pipeline: Stage View
   - Git
-  - SSH Slaves
+  - SSH Build Agents
 - Click `Install`
 After the plugins are installed, enter the following:
 ```text
