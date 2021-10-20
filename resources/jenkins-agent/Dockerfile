@@ -8,8 +8,8 @@ RUN set -x \
   && pip3 install virtualenv
 
 WORKDIR /
-ENV JENKINS_JARFILE "/usr/local/bin/slave.jar"
+ENV JENKINS_JARFILE "/usr/local/bin/agent.jar"
 COPY docker-entrypoint.sh /usr/local/bin/
-COPY slave.jar /usr/local/bin/
+COPY agent.jar /usr/local/bin/
 RUN ln -s /usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["/docker-entrypoint.sh"]

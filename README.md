@@ -8,10 +8,10 @@
 1. [Prepare the Docker environment](#6-prepare-the-docker-environment)
 1. [Run the load balancer](#7-run-the-load-balancer)
 1. [Run GitLab](#8-run-gitlab)
-1. [Run the Jenkins Master](#9-run-the-jenkins-master)
+1. [Run the Jenkins Controller](#9-run-the-jenkins-controller)
 1. [Log into GitLab and configure it](#10-log-into-gitlab-and-configure-it)
 1. [Log into Jenkins and configure it](#11-log-into-jenkins-and-configure-it)
-1. [Build and run the Jenkins slave](#12-build-and-run-the-jenkins-slave)
+1. [Build and run the Jenkins agent](#12-build-and-run-the-jenkins-agent)
 1. [Create a new GitLab project](#13-create-a-new-gitlab-project)
 1. [Create the WWW container](#14-create-the-www-container)
 1. [Install the GitLab plugin for Jenkins](#15-install-the-gitlab-plugin-for-jenkins)
@@ -25,8 +25,8 @@ This project is meant to demo the operations of working with Docker, Jenkins, Gi
 1. `load-balancer` - Nginx that will act as a reverse proxy to expose other Docker services. Nginx will be setup to listen on ports 80 and 443 on localhost.
 1. `web-app` - a demo website with static HTML/CSS/JavaScript running via Apache.
 1. `gitlab` - demo source code will be added to GitLab and used to build and deploy our demo web app.
-1. `jenkins-master` - the Jenkins master will provide the web interface for managing Jenkins.
-1. `jenkins-slave1` - The Jenkins slave will be used by the Jenkins master to do work such as checking out source code and building/running Docker images.
+1. `jenkins-controller` - the Jenkins controller will provide the web interface for managing Jenkins.
+1. `jenkins-agent1` - The Jenkins agent will be used by the Jenkins master to do work such as checking out source code and building/running Docker images.
 
 ![](resources/docs/diagram.png)
 TODO: discuss project folder structure
@@ -51,7 +51,7 @@ Then create directories to store persistent data
 ```bash
 mkdir -p volumes/load-balancer
 mkdir volumes/gitlab
-mkdir volumes/jenkins-master
+mkdir volumes/jenkins-controller
 mkdir volumes/jenkins-svc
 mkdir volumes/www
 ```
@@ -157,6 +157,7 @@ docker volume create --name gitlab-opt-volume -d local
 ```
 
 Pull the Docker base images
+
 ```bash
 docker pull nginx:latest
 docker pull gitlab/gitlab-ce:11.6.3-ce.0
@@ -220,15 +221,15 @@ docker run -d \
 gitlab/gitlab-ce:11.6.3-ce.0
 ```
 
-## 9. Run the Jenkins Master
+## 9. Run the Jenkins Controller
 
-Create the Jenkins master.
+Create the Jenkins controller.
 
 ```
 docker run -d \
---name jenkins-master \
+--name jenkins-controller \
 --env JENKINS_SLAVE_AGENT_PORT=50001 \
--v $PWD/volumes/jenkins-master:/var/jenkins_home \
+-v $PWD/volumes/jenkins-controller:/var/jenkins_home \
 -p 8080:8080 \
 -p 38443:8443 \
 -p 50001:50001 \
@@ -240,7 +241,7 @@ jenkins/jenkins:lts
 
 - Browse to [https://git.local-demo.net/](https://git.local-demo.net/) and set a root password.
 - Then log in with the root account.
-- At the top, click the `gear` icon.
+- At the top, click the `wrench` icon.
 - On the left, click `Users`.
 - Click `New user`.
 - Set the following:
@@ -266,7 +267,7 @@ cat volumes/jenkins-svc/jenkins-svc.pub | clip.exe
 
 - Get the initial root password
 ```bash
-docker exec jenkins-master cat /var/jenkins_home/secrets/initialAdminPassword | clip.exe
+docker exec jenkins-controller cat /var/jenkins_home/secrets/initialAdminPassword | clip.exe
 ```
 
 - Browse to [https://ci.local-demo.net/](https://ci.local-demo.net/) and log in with the root password.
@@ -289,23 +290,23 @@ Confirm password: REMOVED
 Full name: admin
 E-mail address: admin@local-demo.net
 ```
-- Click `Save and Continue`. The Jenkins URL should be `https://ci.local-demo.net`.
+- Click `Save and Continue`. The Jenkins URL should be `http://jenkins-controller:8080/`.
 - Click `Save and Finish`.
 - Click `Start using Jenkins`
 - Click `Manage Jenkins`.
 - Click `Manage Nodes`.
 - Click `New Node`.
-- Set the node name to be `jenkins-slave1` and check `Permanent Agent`.
+- Set the node name to be `jenkins-agent1` and check `Permanent Agent`.
 - Click `OK`.
 - Set the follow attributes:
 ```text
-Name: jenkins-slave1
+Name: jenkins-agent1
 Description: <blank>
 # of executors: 2
 Remote root directory: /var/jenkins
 Labels: dev
 Usage: Only build jobs with label expressions matching this node
-Launch method: Launch agent via Java Web Start
+Launch method: Launch agent by connecting it to the master
 Disable WorkDir: <checked>
 Custom WorkDir path: <blank>
 Internal data directory: remoting
@@ -316,37 +317,37 @@ Environment variables: <unchecked>
 Tool Locations: <unchecked>
 ```
 - Click `Save`.
-- Click `jenkins-slave1`.
+- Click `jenkins-agent1`.
 - There should be an example command to start agent that looks like
 ```bash
-java -jar agent.jar -jnlpUrl https://ci.local-demo.net/computer/jenkins-slave1/slave-agent.jnlp -secret 6dd963b84050baf93d41e2df52aa1a8d6a1a08b3a99316343632d76b1c70217d
+java -jar agent.jar -jnlpUrl http://jenkins-controller:8080/computer/jenkins-agent1/jenkins-agent.jnlp -secret 9f07952b81c190d62e1453f4406cf805e09dd28295d73f3665749cd5a1a1789a
 ```
 - Copy out the secret and set it as a variable. For example:
 ```bash
-AGENT_SECRET=6dd963b84050baf93d41e2df52aa1a8d6a1a08b3a99316343632d76b1c70217d
+AGENT_SECRET=9f07952b81c190d62e1453f4406cf805e09dd28295d73f3665749cd5a1a1789a
 ```
-- Go back to `Jenkins > Nodes`. The node `jenkins-slave1` will show as offline.
+- Go back to `Jenkins > Nodes`. The node `jenkins-agent1` will show as offline.
 
-## 12. Build and run the Jenkins slave
+## 12. Build and run the Jenkins agent
 
-Create the Jenkins slave
+Create the Jenkins agent
 
 ```bash
-chmod 774 resources/jenkins-slave/docker-entrypoint.sh
-cd resources/jenkins-slave
-docker build -t jenkins-slave .
+chmod 774 resources/jenkins-agent/docker-entrypoint.sh
+cd resources/jenkins-agent
+docker build -t jenkins-agent .
 cd ../..
 
 docker run -d \
---name jenkins-slave1 \
+--name jenkins-agent1 \
 -e JENKINS_REMOTE_ROOT_DIR=/var/jenkins \
--e JENKINS_JNLP_URL='http://jenkins-master:8080/computer/jenkins-slave1/slave-agent.jnlp' \
+-e JENKINS_JNLP_URL='http://jenkins-controller:8080/computer/jenkins-agent1/jenkins-agent.jnlp' \
 -e TZ=America/New_York \
 -e JENKINS_SECRET=$AGENT_SECRET \
 -v /usr/local/bin/docker:/usr/bin/docker \
 -v /var/run/docker.sock:/var/run/docker.sock \
 --network docker-local-demo \
-jenkins-slave
+jenkins-agent
 ```
 
 Back in the web browser, refresh the `Jenkins > Nodes` page and you should now see the node online.
@@ -404,9 +405,9 @@ Browse to [https://www.local-demo.net/](https://www.local-demo.net/) and you sho
 - In the filter, enter `GitLab`.
 - Check the `GitLab` plugin and click `Install without restart`.
 - Check `Restart Jenkins when installation is complete and no jobs are running`.
-- Wait for Jenkins to restart. After it has restarted, start up the slave.
+- Wait for Jenkins to restart. After it has restarted, start up the agent.
 ```bash
-docker start jenkins-slave1
+docker start jenkins-agent1
 ```
 
 ## 16. Create a Jenkins pipeline to update your website
@@ -467,7 +468,7 @@ Create a webhook for your project
 - Browse to [https://git.local-demo.net/root/www/settings/integrations](https://git.local-demo.net/root/www/settings/integrations).
 - Set the following:
 ```text
-URL: http://jenkins-master:8080/project/local-demo/www
+URL: http://jenkins-controller:8080/project/local-demo/www
 Secret token: 437dade2a29ce753bfe4e863708e8a31
 Enable SSL verification: unchecked
 
@@ -516,8 +517,8 @@ unset GIT_SSH_COMMAND
 
 # Delete container
 docker rm -f www
-docker rm -f jenkins-slave1
-docker rm -f jenkins-master
+docker rm -f jenkins-agent1
+docker rm -f jenkins-controller
 docker rm -f gitlab
 docker rm -f load-balancer
 
