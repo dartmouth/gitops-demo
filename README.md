@@ -204,7 +204,7 @@ cp resources/gitlab/gitlab.rb volumes/gitlab
 
 Create and run the GitLab container
 
-```
+```bash
 docker run -d \
 --name gitlab \
 --network docker-local-demo \
@@ -225,7 +225,7 @@ gitlab/gitlab-ce:11.6.3-ce.0
 
 Create the Jenkins controller.
 
-```
+```bash
 docker run -d \
 --name jenkins-controller \
 --env JENKINS_SLAVE_AGENT_PORT=50001 \
@@ -383,7 +383,7 @@ git push -u origin master
 
 ## 14. Create the WWW container
 
-```
+```bash
 docker build -t www:latest .
 
 docker run -d \
@@ -406,6 +406,7 @@ Browse to [https://www.local-demo.net/](https://www.local-demo.net/) and you sho
 - Check the `GitLab` plugin and click `Install without restart`.
 - Check `Restart Jenkins when installation is complete and no jobs are running`.
 - Wait for Jenkins to restart. After it has restarted, start up the agent.
+
 ```bash
 docker start jenkins-agent1
 ```
@@ -444,7 +445,7 @@ Create the pipeline
 - Under `Build Triggers` check `Build when a change is pushed to GitLab. GitLab webhook URL: https://ci.local-demo.net/project/local-demo/www`
 - Remove the text from `Comment (regex) for triggering a build`
 - Click `Advanced`
-- Set `Secret token` to `437dade2a29ce753bfe4e863708e8a31`
+- Under `Secret token` click Secret Token and note down the value (e.g. `437dade2a29ce753bfe4e863708e8a31`)
 - Under `Pipeline` set the following:
 ```text
 Definition: Pipeline script from SCM
