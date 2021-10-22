@@ -221,6 +221,16 @@ docker run -d \
 gitlab/gitlab-ce:11.6.3-ce.0
 ```
 
+GitLab will startup and build out the initial configuration. Afterwards, it will try to restart it self. Unfortunately this results in a stopped container because GitLab doesn't expect a need to restart the container. Wait for this to happen and then manually restart the container.
+
+```bash
+# Watch the progress
+docker logs -f gitlab
+
+# Start the cotainer again
+docker start gitlab
+```
+
 ## 9. Run the Jenkins Controller
 
 Create the Jenkins controller.
@@ -521,6 +531,8 @@ Browse to [https://www.local-demo.net/](https://www.local-demo.net/) to view you
 
 ## Undo steps
 
+** Windows **
+
 ```powershell
 # Run as administrator in PowerShell 5
 
@@ -529,6 +541,18 @@ ls "cert:\CurrentUser\Root" | ? subject -like '*local*' | Remove-Item
 # Remove the entry from your hosts file
 notepad "C:\Windows\System32\drivers\etc\hosts"
 ```
+
+** Mac **
+
+```bash
+# Remove the certificate
+sudo security remove-trusted-cert -d volumes/load-balancer/local-demo-net-ca.crt
+
+# Remove the entry from your hosts file
+sudo vi /etc/hosts
+```
+
+** Both Windows and Mac **
 
 ```bash
 # Clean up temporary git config
