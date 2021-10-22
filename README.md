@@ -29,7 +29,11 @@ This project is meant to demo the operations of working with Docker, Jenkins, Gi
 1. `jenkins-agent1` - The Jenkins agent will be used by the Jenkins master to do work such as checking out source code and building/running Docker images.
 
 ![](resources/docs/diagram.png)
-TODO: discuss project folder structure
+
+This diagram shows a GitOps process that will do the following:
+1. Commit website code to GitLab
+1. A webhook is triggered from GitLab to let Jenkins know an update has occurred
+1. A Jenkins agent deploys the docker image update the Apache website
 
 ## 2. Prerequisites
 
