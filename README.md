@@ -47,7 +47,7 @@ This document will be written for Mac and Windows. If using the Windows, please 
 Once you have installed the prerequisites. The only setup you have to do is clone this repository and cd in the directory.
 
 ```bash
-git clone git@git.dartmouth.edu:containerization/docker-local-demo.git
+git clone git@git.dartmouth.edu:d92495j/docker-local-demo.git
 cd docker-local-demo
 ```
 
