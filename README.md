@@ -23,7 +23,7 @@
 
 This project is meant to demo the operations of working with Docker, Jenkins, GitLab, and reverse proxies - all on your laptop. The tutorial walks you through building five Docker containers:
 1. `load-balancer` - Nginx that will act as a reverse proxy to expose other Docker services. Nginx will be setup to listen on ports 80 and 443 on localhost.
-1. `web-app` - a demo website with static HTML/CSS/JavaScript running via Apache.
+1. `www` - a demo website with static HTML/CSS/JavaScript running via Apache.
 1. `gitlab` - demo source code will be added to GitLab and used to build and deploy our demo web app.
 1. `jenkins-controller` - the Jenkins controller will provide the web interface for managing Jenkins.
 1. `jenkins-agent1` - The Jenkins agent will be used by the Jenkins master to do work such as checking out source code and building/running Docker images.
@@ -37,10 +37,10 @@ This diagram shows a GitOps process that will do the following:
 
 ## 2. Prerequisites
 
-This document will be written for Windows using the Windows Subsytem for Linux (WSL), but it is hoped that it can easily be followed by someone on a Mac. The software that this tutorial uses is:
- - [Docker Desktop](https://store.docker.com/editions/community/docker-ce-desktop-windows)
- - [Git](https://git-scm.com/downloads)
- - [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+This document will be written for Mac and Windows. If using the Windows, please follow along via the Windows Subsytem for Linux (WSL). Helpful links for getting setup include:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 
 ## 3. Setup
 
@@ -344,7 +344,7 @@ AGENT_SECRET=9f07952b81c190d62e1453f4406cf805e09dd28295d73f3665749cd5a1a1789a
 
 ## 12. Build and run the Jenkins agent
 
-Create the Jenkins agent
+Create the Jenkins agent. Note that in a production environment the Jenkins agent would run inside the container as an unprivileged user. For this demo it runs as root to simplify the ability to run docker commands through the mounted socket.
 
 ```bash
 chmod 774 resources/jenkins-agent/docker-entrypoint.sh
