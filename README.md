@@ -51,7 +51,22 @@ git clone git@git.dartmouth.edu:d92495j/docker-local-demo.git
 cd docker-local-demo
 ```
 
+For convenience, create a copy command
+
+**Windows**
+
+```bash
+alias clip=clip.exe
+```
+
+**Mac**
+
+```bash
+alias clip=pbcopy
+```
+
 Then create directories to store persistent data
+
 ```bash
 mkdir -p volumes/load-balancer
 mkdir volumes/gitlab
@@ -107,7 +122,9 @@ cd ../..
 ```
 
 After the certificates are in place, import the CA as a trusted root certificate authority.
-Windows
+
+**Windows**
+
 ```powershell
 # Run as administrator in PowerShell 5
 
@@ -117,7 +134,8 @@ cd "~\Desktop\docker-local-demo"
 Import-Certificate -FilePath "$pwd\volumes\load-balancer\local-demo-net-ca.crt" -CertStoreLocation "cert:\CurrentUser\Root"
 ```
 
-Mac
+**Mac**
+
 ```bash
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain volumes/load-balancer/local-demo-net-ca.crt
 ```
@@ -272,7 +290,7 @@ Email: no-reply+jenkins-svc@local-demo.net
 - On the left, click `SSH Keys`.
 - Copy the SSH key you generated in step 4 to your clipboard.
 ```bash
-cat volumes/jenkins-svc/jenkins-svc.pub | clip.exe
+cat volumes/jenkins-svc/jenkins-svc.pub | clip
 ```
 - Paste the key into the web page and click `Add key`.
 - In the top left, click the `Stop impersonation` button.
@@ -281,7 +299,7 @@ cat volumes/jenkins-svc/jenkins-svc.pub | clip.exe
 
 - Get the initial root password
 ```bash
-docker exec jenkins-controller cat /var/jenkins_home/secrets/initialAdminPassword | clip.exe
+docker exec jenkins-controller cat /var/jenkins_home/secrets/initialAdminPassword | clip
 ```
 
 - Browse to [https://ci.local-demo.net/](https://ci.local-demo.net/) and log in with the root password.
@@ -353,7 +371,7 @@ docker build -t jenkins-agent .
 cd ../..
 ```
 
-** Windows **
+**Windows**
 
 ```bash
 docker run -d \
@@ -368,7 +386,7 @@ docker run -d \
 jenkins-agent
 ```
 
-** Mac **
+**Mac**
 
 ```bash
 docker run -d \
@@ -456,7 +474,7 @@ Add the jenkins-svc key
 - On the drop down under `global` select `Add credentials`.
 - Copy the jenkins-svc private key to your clipboard.
 ```bash
-cat volumes/jenkins-svc/jenkins-svc | clip.exe
+cat volumes/jenkins-svc/jenkins-svc | clip
 ```
 - Set the following:
 ```text
@@ -474,10 +492,10 @@ Create the pipeline
 - In the top left, click `local-demo`.
 - Click `New Item`.
 - Set the name to `www`, the type to `Pipeline`, and click `OK`.
-- Under `Build Triggers` check `Build when a change is pushed to GitLab. GitLab webhook URL: https://ci.local-demo.net/project/local-demo/www`
+- Under `Build Triggers` check `Build when a change is pushed to GitLab. GitLab webhook URL: http://jenkins-controller:8080/project/local-demo/www`
 - Remove the text from `Comment (regex) for triggering a build`
 - Click `Advanced`
-- Under `Secret token` click Secret Token and note down the value (e.g. `437dade2a29ce753bfe4e863708e8a31`)
+- Under `Secret token` click Generate and note down the value (e.g. `437dade2a29ce753bfe4e863708e8a31`)
 - Under `Pipeline` set the following:
 ```text
 Definition: Pipeline script from SCM
@@ -535,7 +553,7 @@ Browse to [https://www.local-demo.net/](https://www.local-demo.net/) to view you
 
 ## Undo steps
 
-** Windows **
+**Windows**
 
 ```powershell
 # Run as administrator in PowerShell 5
@@ -546,7 +564,7 @@ ls "cert:\CurrentUser\Root" | ? subject -like '*local*' | Remove-Item
 notepad "C:\Windows\System32\drivers\etc\hosts"
 ```
 
-** Mac **
+**Mac**
 
 ```bash
 # Remove the certificate
@@ -556,7 +574,7 @@ sudo security remove-trusted-cert -d volumes/load-balancer/local-demo-net-ca.crt
 sudo vi /etc/hosts
 ```
 
-** Both Windows and Mac **
+**Both Windows and Mac**
 
 ```bash
 # Clean up temporary git config
