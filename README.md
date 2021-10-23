@@ -1,5 +1,7 @@
 # Docker Local Demo
 
+[Watch a video](https://dartmouth.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=4209be70-bc7d-44e1-859c-adca00141452) walking through this tutorial.
+
 1. [Overview](#1-overview)
 1. [Prerequisites](#2-prerequisites)
 1. [Setup](#3-setup)
