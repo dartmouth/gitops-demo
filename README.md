@@ -49,8 +49,8 @@ This document will be written for Mac and Windows. If using the Windows, please 
 Once you have installed the prerequisites. The only setup you have to do is clone this repository and cd in the directory.
 
 ```bash
-git clone git@git.dartmouth.edu:d92495j/docker-local-demo.git
-cd docker-local-demo
+git clone git@git.dartmouth.edu:research-itc-public/gitops-demo.git
+cd gitops-demo
 ```
 
 For convenience, create a copy command
@@ -129,11 +129,7 @@ After the certificates are in place, import the CA as a trusted root certificate
 
 ```powershell
 # Run as administrator in PowerShell 5
-
-# Update the path accordingly
-cd "~\Desktop\docker-local-demo"
-
-Import-Certificate -FilePath "$pwd\volumes\load-balancer\local-demo-net-ca.crt" -CertStoreLocation "cert:\CurrentUser\Root"
+Import-Certificate -FilePath "volumes\load-balancer\local-demo-net-ca.crt" -CertStoreLocation "cert:\CurrentUser\Root"
 ```
 
 **Mac**
@@ -169,7 +165,7 @@ Consider updating your Docker Desktop settings to give Docker more CPU and RAM. 
 Setup a Docker network for all your containers to use
 
 ```bash
-docker network create docker-local-demo
+docker network create gitops-demo
 ```
 
 Create a set of local volumes for GitLab to use. Note GitLab will not work if we map these volumes to Windows.
@@ -184,8 +180,8 @@ Pull the Docker base images
 
 ```bash
 docker pull nginx:latest
-docker pull gitlab/gitlab-ce:11.6.3-ce.0
-docker pull jenkins/jenkins:lts
+docker pull gitlab/gitlab-ce:13.12.12-ce.0
+docker pull jenkins/jenkins:2.303.1-jdk11
 ```
 
 ## 7. Run the load balancer
@@ -199,7 +195,7 @@ cp resources/load-balancer/nginx.conf volumes/load-balancer
 ```bash
 docker run -d \
 --name load-balancer \
---network=docker-local-demo \
+--network=gitops-demo \
 -p 80:80 \
 -p 443:443 \
 -v $PWD/volumes/load-balancer/local-demo-net.crt:/etc/nginx/certs/local-demo-net.crt:ro \
@@ -231,7 +227,7 @@ Create and run the GitLab container
 ```bash
 docker run -d \
 --name gitlab \
---network docker-local-demo \
+--network gitops-demo \
 -p 8081:443 \
 -p 8082:80 \
 -p 4008:22 \
@@ -242,7 +238,7 @@ docker run -d \
 -v $PWD/volumes/gitlab/local-demo-net.crt:/etc/gitlab/ssl/git.local-demo-net.key:ro \
 -v $PWD/volumes/gitlab/gitlab.rb:/etc/gitlab/gitlab.rb \
 --hostname git.local-demo.net \
-gitlab/gitlab-ce:11.6.3-ce.0
+gitlab/gitlab-ce:13.12.12-ce.0
 ```
 
 GitLab will startup and build out the initial configuration. Afterwards, it will try to restart it self. Unfortunately this results in a stopped container because GitLab doesn't expect a need to restart the container. Wait for this to happen and then manually restart the container.
@@ -267,8 +263,8 @@ docker run -d \
 -p 8080:8080 \
 -p 38443:8443 \
 -p 50001:50001 \
---network docker-local-demo \
-jenkins/jenkins:lts
+--network gitops-demo \
+jenkins/jenkins:2.303.1-jdk11
 ```
 
 ## 10. Log into GitLab and configure it
@@ -288,7 +284,7 @@ Email: no-reply+jenkins-svc@local-demo.net
 ```
 - Click `Create user`.
 - Click `Impersonate`.
-- In the top right, click the user icon and select `Settings`.
+- In the top right, click the user icon and select `Preferences`.
 - On the left, click `SSH Keys`.
 - Copy the SSH key you generated in step 4 to your clipboard.
 ```bash
@@ -328,7 +324,7 @@ E-mail address: admin@local-demo.net
 - Click `Save and Finish`.
 - Click `Start using Jenkins`
 - Click `Manage Jenkins`.
-- Click `Manage Nodes`.
+- Click `Manage Nodes and Clouds`.
 - Click `New Node`.
 - Set the node name to be `jenkins-agent1` and check `Permanent Agent`.
 - Click `OK`.
@@ -345,6 +341,7 @@ Disable WorkDir: <checked>
 Custom WorkDir path: <blank>
 Internal data directory: remoting
 Fail if workspace is missing: <unchecked>
+Use WebSocket: <unchecked>
 Availability: Keep this agent online as much as possible
 Disable deferred wipeout on this node: <unchecked>
 Environment variables: <unchecked>
@@ -354,11 +351,11 @@ Tool Locations: <unchecked>
 - Click `jenkins-agent1`.
 - There should be an example command to start agent that looks like
 ```bash
-java -jar agent.jar -jnlpUrl http://jenkins-controller:8080/computer/jenkins-agent1/jenkins-agent.jnlp -secret 9f07952b81c190d62e1453f4406cf805e09dd28295d73f3665749cd5a1a1789a
+java -jar agent.jar -jnlpUrl http://jenkins-controller:8080/computer/jenkins-agent1/jenkins-agent.jnlp -secret ce9a462f44bfd91655066dc33123915a7429a2b980fbb2aae5c162c88e95a3af
 ```
 - Copy out the secret and set it as a variable. For example:
 ```bash
-AGENT_SECRET=9f07952b81c190d62e1453f4406cf805e09dd28295d73f3665749cd5a1a1789a
+AGENT_SECRET=ce9a462f44bfd91655066dc33123915a7429a2b980fbb2aae5c162c88e95a3af
 ```
 - Go back to `Jenkins > Nodes`. The node `jenkins-agent1` will show as offline.
 
@@ -384,7 +381,7 @@ docker run -d \
 -e JENKINS_SECRET=$AGENT_SECRET \
 -v /usr/local/bin/docker:/usr/bin/docker \
 -v /var/run/docker.sock:/var/run/docker.sock \
---network docker-local-demo \
+--network gitops-demo \
 jenkins-agent
 ```
 
@@ -398,7 +395,7 @@ docker run -d \
 -e TZ=America/New_York \
 -e JENKINS_SECRET=$AGENT_SECRET \
 -v /var/run/docker.sock:/var/run/docker.sock \
---network docker-local-demo \
+--network gitops-demo \
 jenkins-agent
 ```
 
@@ -408,11 +405,12 @@ Back in the web browser, refresh the `Jenkins > Nodes` page and you should now s
 
 - Browse to [https://git.local-demo.net/](https://git.local-demo.net/).
 - Under the plus sign, select `New project`.
+- Click `Create blank project`.
 - Set the name to `www` and leave all the defaults.
 - Click `Create project`.
-- Click `Settings` and then `Members`.
+- Click `Members` on the left toolbar.
 - Select `jenkins-svc` and give them the `Maintainer` role.
-- Click `Add to project`.
+- Click `Invite`.
 - Clone the repository locally
 ```bash
 # Set git to use the jenkins-svc key
@@ -440,7 +438,7 @@ docker build -t www:latest .
 
 docker run -d \
 --name www \
---network docker-local-demo \
+--network gitops-demo \
 www:latest
 
 cd ../..
@@ -468,12 +466,12 @@ docker start jenkins-agent1
 Create a local-demo folder
 - Browse to [https://ci.local-demo.net/](https://ci.local-demo.net/).
 - Click `New Item`.
-- Set the name to `local-demo`, the type to `Folder`, and click `OK`.
+- Set the name to `local-demo`, the type to `Folder`, and click `Save`.
 
 Add the jenkins-svc key
 - In the top left, click `local-demo`.
 - On the left, click `Credentials`.
-- On the drop down under `global` select `Add credentials`.
+- Under `Stores scoped to local-demo`, on the drop down under `global` select `Add credentials`.
 - Copy the jenkins-svc private key to your clipboard.
 ```bash
 cat volumes/jenkins-svc/jenkins-svc | clip
@@ -481,12 +479,13 @@ cat volumes/jenkins-svc/jenkins-svc | clip
 - Set the following:
 ```text
 Kind: SSH Username and with private key
-Username: git
-Private key: Enter directly
-Key: <paste from clipboard>
-Passphrase: <blank>
 ID: jenkins-svc-key
 Description: jenkins-svc-key
+Username: git
+Private key: Enter directly
+Click `Add`
+Key: <paste from clipboard>
+Passphrase: <blank>
 ```
 - Click `OK`.
 
@@ -503,7 +502,7 @@ Create the pipeline
 Definition: Pipeline script from SCM
 SCM: Git
 Repository URL: git@gitlab:root/www.git
-Credentials: git (jenkins-svc GitLab key)
+Credentials: git (jenkins-svc)
 
 # Leave all the settings with the default values
 ```
@@ -518,7 +517,7 @@ Allow webhooks to localhost
 - Click `Save changes`.
 
 Create a webhook for your project
-- Browse to [https://git.local-demo.net/root/www/settings/integrations](https://git.local-demo.net/root/www/settings/integrations).
+- Browse to [https://git.local-demo.net/root/www/-/hooks](https://git.local-demo.net/root/www/-/hooks).
 - Set the following:
 ```text
 URL: http://jenkins-controller:8080/project/local-demo/www
@@ -566,6 +565,11 @@ ls "cert:\CurrentUser\Root" | ? subject -like '*local*' | Remove-Item
 notepad "C:\Windows\System32\drivers\etc\hosts"
 ```
 
+```bash
+# Clean up temporary git config
+sed -i '/git.local-demo.net/d' ~/.ssh/known_hosts
+```
+
 **Mac**
 
 ```bash
@@ -574,6 +578,9 @@ sudo security remove-trusted-cert -d volumes/load-balancer/local-demo-net-ca.crt
 
 # Remove the entry from your hosts file
 sudo vi /etc/hosts
+
+# Clean up temporary git config
+sed -i '' '/git.local-demo.net/d' ~/.ssh/known_hosts
 ```
 
 **Both Windows and Mac**
@@ -595,10 +602,10 @@ docker volume rm gitlab-logs-volume
 docker volume rm gitlab-opt-volume
 
 # Delete network
-docker network rm docker-local-demo
+docker network rm gitops-demo
 
 # Delete demo repo
 cd ..
-rm -rf docker-local-demo
+rm -rf gitops-demo
 ```
 
