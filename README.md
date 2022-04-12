@@ -182,6 +182,7 @@ Pull the Docker base images
 docker pull nginx:latest
 docker pull gitlab/gitlab-ce:13.12.12-ce.0
 docker pull jenkins/jenkins:2.303.1-jdk11
+docker pull httpd:latest
 ```
 
 ## 7. Run the load balancer
