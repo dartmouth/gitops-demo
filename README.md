@@ -42,7 +42,7 @@ This diagram shows a GitOps process that will do the following:
 This document will be written for Mac and Windows. If using the Windows, please follow along via the Windows Subsytem for Linux (WSL). Helpful links for getting setup include:
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+- [WSL](https://docs.microsoft.com/en-us/windows/wsl/install)
 
 ## 3. Setup
 
