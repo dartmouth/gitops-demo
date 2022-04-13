@@ -7,7 +7,7 @@ RUN set -x \
   && pip install virtualenv \
   && pip3 install virtualenv
 
-# Required for Mac, insall Docker command line tools
+# Required for Mac, install Docker command line tools
 RUN apt install -y apt-transport-https \
  && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
  && echo \

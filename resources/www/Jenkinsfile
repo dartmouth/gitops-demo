@@ -12,6 +12,6 @@ node('dev') {
     }
   }
   stage("Run the new Docker container") {
-    sh 'docker run -d --name www --network docker-local-demo www:latest'
+    sh 'docker run -d --name www --network gitops-demo www:latest'
   }
 }
